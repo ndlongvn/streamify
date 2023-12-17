@@ -11,21 +11,21 @@ code ~/.ssh/config # ssh streamify-kafka
 # set kafka
 ssh streamify-kafka
 
-git clone https://github.com/ndlongvn/BigData-Project.git 
+git clone https://github.com/ndlongvn/streamify.git 
 
-bash ~/BigData-Project/scripts/vm_setup.sh && \
+bash ~/streamify/scripts/vm_setup.sh && \
 exec newgrp docker
 
 export KAFKA_ADDRESS=IP.ADD.RE.SS
 
-cd ~/BigData-Project/kafka && \
+cd ~/streamify/kafka && \
 docker-compose build && \
 docker-compose up -d
     # go to port 9021 to see kafka ui
 
 # set eventsim
 
-bash ~/BigData-Project/scripts/eventsim_startup.sh
+bash ~/streamify/scripts/eventsim_startup.sh
 
 docker logs --follow million_events
 
@@ -33,11 +33,11 @@ docker logs --follow million_events
 
 ssh streamify-spark
 
-git clone https://github.com/ndlongvn/BigData-Project.git && \
-cd BigData-Project/spark_streaming
+git clone https://github.com/ndlongvn/streamify.git && \
+cd streamify/spark_streaming
 
 export KAFKA_ADDRESS=IP.ADD.RE.SS
-export GCP_GCS_BUCKET=bigdata-project-it4931
+export GCP_GCS_BUCKET=streamify-it4931
 
 spark-submit \
 --packages org.apache.spark:spark-sql-kafka-0-10_2.12:3.1.2 \
@@ -48,10 +48,10 @@ stream_all_events.py
 # set airflow
 ssh streamify-airflow
 
-git clone https://github.com/ndlongvn/BigData-Project.git && \
-cd BigData-Project
+git clone https://github.com/ndlongvn/streamify.git && \
+cd streamify
 
-bash ~/BigData-Project/scripts/vm_setup.sh && \
+bash ~/streamify/scripts/vm_setup.sh && \
 exec newgrp docker
 
 # Move google_credentials.json file from local to the VM machine in ~/.google/credentials/ directory.  
@@ -63,9 +63,9 @@ nano google_credentials.json # and paster the content of the file in the nano ed
 
 
 export GCP_PROJECT_ID=deft-manifest-406205
-export GCP_GCS_BUCKET=bigdata-project-it4931
+export GCP_GCS_BUCKET=streamify-it4931
 
-bash ~/BigData-Project/scripts/airflow_startup.sh && cd ~/BigData-Project/airflow
+bash ~/streamify/scripts/airflow_startup.sh && cd ~/streamify/airflow
 
 # set dags
 
