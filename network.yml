@@ -1,0 +1,5 @@
+version: '3'
+
+networks:
+  project-network:
+    external: true

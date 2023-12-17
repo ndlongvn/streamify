@@ -1,0 +1,1 @@
+gcloud auth activate-service-account --key-file=/path/to/your/service-account-key.json

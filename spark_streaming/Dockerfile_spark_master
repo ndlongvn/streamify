@@ -1,0 +1,42 @@
+# FROM bde2020/spark-master:latest
+
+# # Install Anaconda and Python 3.8
+# RUN curl -O https://repo.anaconda.com/archive/Anaconda3-2021.11-Linux-x86_64.sh \
+#     && chmod +x Anaconda3-2021.11-Linux-x86_64.sh \
+#     && ./Anaconda3-2021.11-Linux-x86_64.sh -b -p /opt/anaconda3 \
+#     && rm Anaconda3-2021.11-Linux-x86_64.sh
+
+# # Set Anaconda as the default Python environment
+# ENV PATH="/opt/anaconda3/bin:$PATH"
+
+# # Copy the Spark Streaming code to the container
+# COPY schema.py /home/spark_streaming/schema.py 
+# COPY stream_all_events.py /home/spark_streaming/stream_all_events.py
+# COPY streaming_functions.py /home/spark_streaming/streaming_functions.py
+# COPY google_credentials.json /home/google_credentials.json
+
+# # Install Google Cloud SDK
+# RUN curl https://sdk.cloud.google.com | bash
+
+# # Set up the environment
+# SHELL ["/bin/bash", "-c"]
+
+# # Set the environment variables
+# ENV GOOGLE_APPLICATION_CREDENTIALS=/home/google_credentials.json
+# ENV PROJECT_ID=deft-manifest-406205
+# ENV BUCKET_NAME=bigdata-project-it4931
+
+# # Initialize Google Cloud SDK
+# RUN echo "y" | gcloud init
+
+# # Run the Spark Streaming code
+# CMD spark/bin/spark-submit --packages org.apache.spark:spark-sql-kafka-0-10_2.12:3.1.2 /home/spark_streaming/stream_all_events.py
+
+FROM bde2020/spark-master:3.0.0-hadoop3.2
+
+# Install Python 3.8 dependencies
+RUN apt-get update \
+    && apt-get install -y software-properties-common \
+    && add-apt-repository ppa:deadsnakes/ppa \
+    && apt-get update \
+    && apt-get install -y python3.8
