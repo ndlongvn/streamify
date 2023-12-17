@@ -55,8 +55,8 @@ bash ~/streamify/scripts/vm_setup.sh && \
 exec newgrp docker
 
 # Move google_credentials.json file from local to the VM machine in ~/.google/credentials/ directory.  
-mkdir ~/.google
-mkdir ~/.google/credentials
+# mkdir ~/.google
+# mkdir ~/.google/credentials
 cd ~/.google/credentials
 nano google_credentials.json # and paster the content of the file in the nano editor
 
