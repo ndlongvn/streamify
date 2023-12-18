@@ -1,6 +1,6 @@
 # First-time build can take upto 10 mins.
 
-FROM apache/airflow:2.2.3
+FROM apache/airflow:2.2.3-python3.8
 
 ENV AIRFLOW_HOME=/opt/airflow
 
@@ -13,7 +13,9 @@ RUN apt-get update && apt-get install -y build-essential
 # git gcc g++ -qqq
 
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+COPY package/dbt-bigquery-1.0.0.tar.gz .
+RUN pip install dbt-bigquery-1.0.0.tar.gz
+RUN pip install --trusted-host pypi.org --trusted-host pypi.python.org --trusted-host files.pythonhosted.org --no-cache-dir -r requirements.txt
 
 # Ref: https://airflow.apache.org/docs/docker-stack/recipes.html
 
