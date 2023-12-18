@@ -63,6 +63,10 @@ services:
     container_name: kafka-tools
     command: ["tail", "-f", "/dev/null"]
     network_mode: "host"
+    depends_on:
+      - zookeeper
+      - broker1
+      - broker2
 
   schema-registry:
     image: confluentinc/cp-schema-registry:5.4.0
@@ -70,7 +74,8 @@ services:
     container_name: schema-registry
     depends_on:
       - zookeeper
-      - broker
+      - broker1
+      - broker2
     ports:
       - "8081:8081"
     environment:
@@ -83,16 +88,17 @@ services:
     container_name: control-center
     depends_on:
       - zookeeper
-      - broker
+      - broker1
       - schema-registry
+      - broker2
     ports:
       - "9021:9021"
     environment:
-      CONTROL_CENTER_BOOTSTRAP_SERVERS: 'broker:29092'
+      CONTROL_CENTER_BOOTSTRAP_SERVERS: 'broker1:29092,broker2:29093'
       CONTROL_CENTER_ZOOKEEPER_CONNECT: 'zookeeper:2181'
       CONTROL_CENTER_SCHEMA_REGISTRY_URL: "http://schema-registry:8081"
-      CONTROL_CENTER_REPLICATION_FACTOR: 1
+      CONTROL_CENTER_REPLICATION_FACTOR: 2
       CONTROL_CENTER_INTERNAL_TOPICS_PARTITIONS: 1
       CONTROL_CENTER_MONITORING_INTERCEPTOR_TOPIC_PARTITIONS: 1
-      CONFLUENT_METRICS_TOPIC_REPLICATION: 1
+      CONFLUENT_METRICS_TOPIC_REPLICATION: 2
       PORT: 9021
