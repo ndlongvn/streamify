@@ -40,7 +40,8 @@ with DAG(
     dag_id = f'streamify_dag',
     default_args = default_args,
     description = f'Hourly data pipeline to generate dims and facts for streamify',
-    schedule_interval="5 * * * *", #At the 5th minute of every hour
+    # schedule_interval="5 * * * *", #At the 5th minute of every hour
+    schedule_interval="*/30 * * * *",
     start_date=datetime(2022,3,26,18),
     catchup=False,
     max_active_runs=1,
