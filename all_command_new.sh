@@ -37,7 +37,7 @@ git clone https://github.com/ndlongvn/streamify.git && \
 cd streamify/spark_streaming
 
 export KAFKA_ADDRESS=IP.ADD.RE.SS
-export GCP_GCS_BUCKET=streamify-it4931
+export GCP_GCS_BUCKET=bigdata-project-it4931
 
 spark-submit \
 --packages org.apache.spark:spark-sql-kafka-0-10_2.12:3.1.2 \
@@ -63,7 +63,7 @@ nano google_credentials.json # and paster the content of the file in the nano ed
 
 
 export GCP_PROJECT_ID=deft-manifest-406205
-export GCP_GCS_BUCKET=streamify-it4931
+export GCP_GCS_BUCKET=bigdata-project-it4931
 
 bash ~/streamify/scripts/airflow_startup.sh && cd ~/streamify/airflow
 
