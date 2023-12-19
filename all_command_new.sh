@@ -67,6 +67,8 @@ export GCP_GCS_BUCKET=bigdata-project-it4931
 
 bash ~/streamify/scripts/airflow_startup.sh && cd ~/streamify/airflow
 
+docker-compose logs --follow
+
 # set dags
 
 step1: load_songs_dag
