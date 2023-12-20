@@ -1,5 +1,6 @@
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import from_json, col, month, hour, dayofmonth, col, year, udf
+import os
 
 
 @udf
@@ -14,7 +15,7 @@ def string_decode(s, encoding='utf-8'):
     else:
         return s
 
-def create_or_get_spark_session(app_name, master="yarn"):
+def create_or_get_spark_session(app_name, stream= False, master="yarn"):
     """
     Creates or gets a Spark Session
 
@@ -26,11 +27,20 @@ def create_or_get_spark_session(app_name, master="yarn"):
     Returns:
         spark: SparkSession
     """
-    spark = (SparkSession
-             .builder
-             .appName(app_name)
-             .master(master=master)
-             .getOrCreate())
+    if stream:
+
+        spark = SparkSession.builder \
+            .appName(app_name) \
+            .master(master=master) \
+            .config('credentials', '~/streamify/google_credentials.json') \
+            .config('parentProject', os.getenv("GCP_PROJECT_ID", 'deft-manifest-406205')) \
+            .getOrCreate()
+    else:
+        spark = (SparkSession
+                .builder
+                .appName(app_name)
+                .master(master=master)
+                .getOrCreate())
 
     return spark
 
@@ -123,7 +133,7 @@ def process_stream(stream, stream_schema, topic):
     return stream
 
 
-def create_file_write_stream(stream, storage_path, checkpoint_path, trigger="120 seconds", output_mode="append", file_format="parquet"):
+def create_file_write_stream(stream, storage_path, checkpoint_path, trigger="60 seconds", output_mode="append", file_format="parquet"):
     """
     Write the stream back to a file store
 
@@ -141,7 +151,7 @@ def create_file_write_stream(stream, storage_path, checkpoint_path, trigger="120
         output_mode : str
             append, complete, update
     """
-
+    "add options: 1 second"
     write_stream = (stream
                     .writeStream
                     .format(file_format)
@@ -152,3 +162,4 @@ def create_file_write_stream(stream, storage_path, checkpoint_path, trigger="120
                     .outputMode(output_mode))
 
     return write_stream
+
