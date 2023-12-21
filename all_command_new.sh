@@ -45,7 +45,7 @@ spark-submit \
 --packages org.apache.spark:spark-sql-kafka-0-10_2.12:3.1.2 \
 stream_all_events.py
 
-spark-submit --packages com.google.cloud.spark:spark-bigquery-with-dependencies_2.12:0.21.1 stream_to_gcs.py
+spark-submit --packages org.apache.spark:spark-sql-kafka-0-10_2.12:3.1.2 --jars=gs://spark-lib/bigquery/spark-bigquery-latest_2.12.jar stream_to_gcs.py
 # go to port 8088 or 9870 or 18080
 
 # set airflow

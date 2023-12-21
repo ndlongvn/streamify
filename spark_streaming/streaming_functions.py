@@ -27,25 +27,16 @@ def create_or_get_spark_session(app_name, stream= False, master="yarn"):
     Returns:
         spark: SparkSession
     """
-    if stream:
-
-        spark = SparkSession.builder \
-            .appName(app_name) \
-            .master(master=master) \
-            .config('credentials', '~/streamify/google_credentials.json') \
-            .config('parentProject', os.getenv("GCP_PROJECT_ID", 'deft-manifest-406205')) \
-            .getOrCreate()
-    else:
-        spark = (SparkSession
-                .builder
-                .appName(app_name)
-                .master(master=master)
-                .getOrCreate())
+    spark = (SparkSession
+            .builder
+            .appName(app_name)
+            .master(master=master)
+            .getOrCreate())
 
     return spark
 
 
-def create_kafka_read_stream(spark, kafka_address, kafka_port, topic, starting_offset="earliest"):
+def create_kafka_read_stream(spark, groupid, kafka_address, kafka_port, topic, starting_offset="earliest"):
     """
     Creates a kafka read stream
 
@@ -67,7 +58,7 @@ def create_kafka_read_stream(spark, kafka_address, kafka_port, topic, starting_o
         read_stream = (spark
                     .readStream
                     .format("kafka")
-                    # .option("kafka.bootstrap.servers", f"{kafka_address}:{kafka_port}")
+                    .option("group.id", groupid)
                     .option("kafka.bootstrap.servers", "{}:{}".format(kafka_address, kafka_port))
                     .option("failOnDataLoss", False)
                     .option("startingOffsets", starting_offset)
@@ -75,16 +66,30 @@ def create_kafka_read_stream(spark, kafka_address, kafka_port, topic, starting_o
                     .load())
     if isinstance(kafka_port, list):
         # print(f"Reading from: {kafka_address}:{kafka_port[0]},{kafka_address}:{kafka_port[1]}")
-        print("Reading from: {}:{},{}:{}".format(kafka_address, kafka_port[0], kafka_address, kafka_port[1]))
-        read_stream = (spark
-                    .readStream
-                    .format("kafka")
-                    # .option("kafka.bootstrap.servers", f"{kafka_address}:{kafka_port[0]},{kafka_address}:{kafka_port[1]}")
-                    .option("kafka.bootstrap.servers", "{}:{},{}:{}".format(kafka_address, kafka_port[0], kafka_address, kafka_port[1]))
-                    .option("failOnDataLoss", False)
-                    .option("startingOffsets", starting_offset)
-                    .option("subscribe", topic)
-                    .load())
+        if len(kafka_port) ==2:
+            print("Reading from: {}:{},{}:{}".format(kafka_address, kafka_port[0], kafka_address, kafka_port[1]))
+            read_stream = (spark
+                        .readStream
+                        .format("kafka")
+                        .option("group.id", groupid)
+                        # .option("kafka.bootstrap.servers", f"{kafka_address}:{kafka_port[0]},{kafka_address}:{kafka_port[1]}")
+                        .option("kafka.bootstrap.servers", "{}:{},{}:{}".format(kafka_address, kafka_port[0], kafka_address, kafka_port[1]))
+                        .option("failOnDataLoss", False)
+                        .option("startingOffsets", starting_offset)
+                        .option("subscribe", topic)
+                        .load())
+        else:
+            print("Reading from: {}:{},{}:{},{}:{}".format(kafka_address, kafka_port[0], kafka_address, kafka_port[1], kafka_address, kafka_port[2]))
+            read_stream = (spark
+                        .readStream
+                        .format("kafka")
+                        .option("group.id", groupid)
+                        # .option("kafka.bootstrap.servers", f"{kafka_address}:{kafka_port[0]},{kafka_address}:{kafka_port[1]},{kafka_address}:{kafka_port[2]}")
+                        .option("kafka.bootstrap.servers", "{}:{},{}:{},{}:{}".format(kafka_address, kafka_port[0], kafka_address, kafka_port[1], kafka_address, kafka_port[2]))
+                        .option("failOnDataLoss", False)
+                        .option("startingOffsets", starting_offset)
+                        .option("subscribe", topic)
+                        .load())
 
 
     return read_stream
@@ -133,7 +138,7 @@ def process_stream(stream, stream_schema, topic):
     return stream
 
 
-def create_file_write_stream(stream, storage_path, checkpoint_path, trigger="60 seconds", output_mode="append", file_format="parquet"):
+def create_file_write_stream(stream, storage_path, checkpoint_path, trigger="120 seconds", output_mode="append", file_format="parquet"):
     """
     Write the stream back to a file store
 

@@ -12,7 +12,7 @@ LISTEN_EVENTS_TOPIC = "listen_events"
 PAGE_VIEW_EVENTS_TOPIC = "page_view_events"
 AUTH_EVENTS_TOPIC = "auth_events"
 
-KAFKA_PORT = ["9092", "9093", "9094"]
+KAFKA_PORT = ["9092", "9093"]
 
 KAFKA_ADDRESS = os.getenv("KAFKA_ADDRESS", 'localhost')
 GCP_GCS_BUCKET = os.getenv("GCP_GCS_BUCKET", 'streamify')
@@ -21,21 +21,22 @@ GCS_STORAGE_PATH = 'gs://' + GCP_GCS_BUCKET
 # initialize a spark session
 spark = create_or_get_spark_session('Eventsim Stream')
 spark.streams.resetTerminated()
+groupid= "streamify"
 # listen events stream
 listen_events = create_kafka_read_stream(
-    spark, KAFKA_ADDRESS, KAFKA_PORT, LISTEN_EVENTS_TOPIC)
+    spark, groupid,KAFKA_ADDRESS, KAFKA_PORT, LISTEN_EVENTS_TOPIC)
 listen_events = process_stream(
     listen_events, schema[LISTEN_EVENTS_TOPIC], LISTEN_EVENTS_TOPIC)
 
 # page view stream
 page_view_events = create_kafka_read_stream(
-    spark, KAFKA_ADDRESS, KAFKA_PORT, PAGE_VIEW_EVENTS_TOPIC)
+    spark, groupid, KAFKA_ADDRESS, KAFKA_PORT, PAGE_VIEW_EVENTS_TOPIC)
 page_view_events = process_stream(
     page_view_events, schema[PAGE_VIEW_EVENTS_TOPIC], PAGE_VIEW_EVENTS_TOPIC)
 
 # auth stream
 auth_events = create_kafka_read_stream(
-    spark, KAFKA_ADDRESS, KAFKA_PORT, AUTH_EVENTS_TOPIC)
+    spark, groupid, KAFKA_ADDRESS, KAFKA_PORT, AUTH_EVENTS_TOPIC)
 auth_events = process_stream(
     auth_events, schema[AUTH_EVENTS_TOPIC], AUTH_EVENTS_TOPIC)
 
