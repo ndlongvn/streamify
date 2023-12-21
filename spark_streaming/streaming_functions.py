@@ -95,87 +95,156 @@ def create_kafka_read_stream(spark, groupid, kafka_address, kafka_port, topic, s
     return read_stream
 
 
-def process_stream(stream, stream_schema, topic):
+# def process_stream(stream, stream_schema, topic):
+#     """
+#     Process stream to fetch on value from the kafka message.
+#     convert ts to timestamp format and produce year, month, day,
+#     hour columns
+#     Parameters:
+#         stream : DataStreamReader
+#             The data stream reader for your stream
+#     Returns:
+#         stream: DataStreamReader
+#     """
+
+#     # read only value from the incoming message and convert the contents
+#     # inside to the passed schema
+#     stream = (stream
+#               .selectExpr("CAST(value AS STRING)")
+#               .select(
+#                   from_json(col("value"), stream_schema).alias(
+#                       "data")
+#               )
+#               .select("data.*")
+#               )
+
+#     # Add month, day, hour to split the data into separate directories
+#     stream = (stream
+#               .withColumn("ts", (col("ts")/1000).cast("timestamp"))
+#               .withColumn("year", year(col("ts")))
+#               .withColumn("month", month(col("ts")))
+#               .withColumn("hour", hour(col("ts")))
+#               .withColumn("day", dayofmonth(col("ts")))
+#               .withColumn("minute", minute(col("ts")))
+#                 .withColumn("sec", sec(col("ts")))
+#               )
+
+#     # rectify string encoding
+#     if topic in ["listen_events", "page_view_events"]:
+#         stream = (stream
+#                 .withColumn("song", string_decode("song"))
+#                 .withColumn("artist", string_decode("artist")) 
+#                 )
+
+
+#     return stream
+
+
+# def create_file_write_stream(stream, storage_path, checkpoint_path, trigger="120 seconds", output_mode="append", file_format="parquet"):
+#     """
+#     Write the stream back to a file store
+
+#     Parameters:
+#         stream : DataStreamReader
+#             The data stream reader for your stream
+#         file_format : str
+#             parquet, csv, orc etc
+#         storage_path : str
+#             The file output path
+#         checkpoint_path : str
+#             The checkpoint location for spark
+#         trigger : str
+#             The trigger interval
+#         output_mode : str
+#             append, complete, update
+#     """
+#     "add options: 1 second"
+#     # write_stream = (stream
+#     #                 .writeStream
+#     #                 .format(file_format)
+#     #                 .partitionBy("month", "day", "hour")
+#     #                 .option("path", storage_path)
+#     #                 .option("checkpointLocation", checkpoint_path)
+#     #                 .trigger(processingTime=trigger)
+#     #                 .outputMode(output_mode))
+#     stream = stream.withColumn(
+#             "five_minute_interval",
+#             expr("concat(date_format(timestamp, 'yyyy-MM-dd HH:'), floor(minute(timestamp) / 5) * 5)"))
+
+#     write_stream = (stream
+#                     .writeStream
+#                     .format(file_format)
+#                     # Partition by the new 5-minute interval column along with month, day, hour if needed
+#                     .partitionBy("month", "day", "hour", "five_minute_interval")
+#                     .option("path", storage_path)
+#                     .option("checkpointLocation", checkpoint_path)
+#                     .trigger(processingTime=trigger)
+#                     .outputMode(output_mode))
+
+#     return write_stream
+
+def process_stream(stream, stream_schema):
     """
-    Process stream to fetch on value from the kafka message.
-    convert ts to timestamp format and produce year, month, day,
-    hour columns
+    Process stream to fetch value from the kafka message, convert ts to timestamp format
+    and produce year, month, day, hour, and five-minute interval columns.
     Parameters:
-        stream : DataStreamReader
-            The data stream reader for your stream
-    Returns:
         stream: DataStreamReader
+            The data stream reader for your stream
+        stream_schema: StructType
+            The schema to apply to the data stream
+    Returns:
+        stream: DataFrame
     """
 
-    # read only value from the incoming message and convert the contents
-    # inside to the passed schema
+    # Extract data using the provided schema
     stream = (stream
               .selectExpr("CAST(value AS STRING)")
-              .select(
-                  from_json(col("value"), stream_schema).alias(
-                      "data")
-              )
+              .select(from_json(col("value"), stream_schema).alias("data"))
               .select("data.*")
               )
 
-    # Add month, day, hour to split the data into separate directories
+    # Convert epoch time to timestamp and extract time components
     stream = (stream
-              .withColumn("ts", (col("ts")/1000).cast("timestamp"))
-              .withColumn("year", year(col("ts")))
-              .withColumn("month", month(col("ts")))
-              .withColumn("hour", hour(col("ts")))
-              .withColumn("day", dayofmonth(col("ts")))
-              .withColumn("minute", minute(col("ts")))
-                .withColumn("sec", sec(col("ts")))
+              .withColumn("ts", (col("ts") / 1000).cast("timestamp"))
+              .withColumn("year", year("ts"))
+              .withColumn("month", month("ts"))
+              .withColumn("day", dayofmonth("ts"))
+              .withColumn("hour", hour("ts"))
+              .withColumn("minute", minute("ts"))
+              .withColumn("second", second("ts"))
+              # Create a column for 5-minute time intervals
+              .withColumn("five_minute_interval",
+                          expr("concat(date_format(ts, 'yyyy-MM-dd HH:'), lpad(floor(minute(ts) / 5) * 5, 2, '0'))"))
               )
 
-    # rectify string encoding
-    if topic in ["listen_events", "page_view_events"]:
-        stream = (stream
-                .withColumn("song", string_decode("song"))
-                .withColumn("artist", string_decode("artist")) 
-                )
-
-
     return stream
-
 
 def create_file_write_stream(stream, storage_path, checkpoint_path, trigger="120 seconds", output_mode="append", file_format="parquet"):
     """
     Write the stream back to a file store
 
     Parameters:
-        stream : DataStreamReader
-            The data stream reader for your stream
-        file_format : str
-            parquet, csv, orc etc
-        storage_path : str
+        stream: DataFrame
+            The data frame representing your stream
+        storage_path: str
             The file output path
-        checkpoint_path : str
-            The checkpoint location for spark
-        trigger : str
+        checkpoint_path: str
+            The checkpoint location for Spark
+        trigger: str
             The trigger interval
-        output_mode : str
+        output_mode: str
             append, complete, update
+        file_format: str
+            parquet, csv, orc, etc.
+    Returns:
+        write_stream: DataStreamWriter
     """
-    "add options: 1 second"
-    # write_stream = (stream
-    #                 .writeStream
-    #                 .format(file_format)
-    #                 .partitionBy("month", "day", "hour")
-    #                 .option("path", storage_path)
-    #                 .option("checkpointLocation", checkpoint_path)
-    #                 .trigger(processingTime=trigger)
-    #                 .outputMode(output_mode))
-    stream = stream.withColumn(
-            "five_minute_interval",
-            expr("concat(date_format(timestamp, 'yyyy-MM-dd HH:'), floor(minute(timestamp) / 5) * 5)"))
 
+    # Write out the stream partitioned by time components and 5-minute intervals
     write_stream = (stream
                     .writeStream
                     .format(file_format)
-                    # Partition by the new 5-minute interval column along with month, day, hour if needed
-                    .partitionBy("month", "day", "hour", "five_minute_interval")
+                    .partitionBy("year", "month", "day", "hour", "five_minute_interval")  # Partition by the desired time components
                     .option("path", storage_path)
                     .option("checkpointLocation", checkpoint_path)
                     .trigger(processingTime=trigger)
