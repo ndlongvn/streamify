@@ -10,6 +10,15 @@ from task_templates import (create_external_table,
                             insert_job, 
                             delete_external_table)
 
+def create_five_minute_interval(logical_date):
+    # Round down the minutes to the nearest 5-minute mark
+    minute = (logical_date.minute // 5) * 5
+    # Create a new datetime with the rounded minute
+    five_minute_interval_date = logical_date.replace(minute=minute, second=0, microsecond=0)
+    # Format the datetime into the desired string format
+    five_minute_interval_str = five_minute_interval_date.strftime('%Y-%m-%d %H-') + '{:02}'.format(minute)
+    # Use five_minute_interval_str as needed
+    print(five_minute_interval_str)
 
 EVENTS = ['listen_events', 'page_view_events', 'auth_events'] # we have data coming in from three events
 
@@ -22,12 +31,20 @@ EXECUTION_MONTH = '{{ logical_date.strftime("%-m") }}'
 EXECUTION_DAY = '{{ logical_date.strftime("%-d") }}'
 EXECUTION_HOUR = '{{ logical_date.strftime("%-H") }}'
 EXECUTION_DATETIME_STR = '{{ logical_date.strftime("%m%d%H") }}'
+# EXECUTION_MINUTE = '{{ (((logical_date.strftime("%-H")//5)*5)) }}'
+# EXECUTION_FIVE_MINUTE_INTERVAL = '{{ (logical_date.strftime("%Y-%m-%d %H")) }}-{{ execution_minute }}'
+# print(EXECUTION_FIVE_MINUTE_INTERVAL)
+
+EXECUTION_MINUTE = '{{ ((logical_date - timedelta(minutes=(logical_date.minute % 5))).strftime("%M")) }}'
+EXECUTION_FIVE_MINUTE_INTERVAL = '{{ ((logical_date - timedelta(minutes=(logical_date.minute % 5))).strftime("%Y%-m-%d %H")) }}-{{ execution_minute }}'
 
 TABLE_MAP = { f"{event.upper()}_TABLE" : event for event in EVENTS}
 
 MACRO_VARS = {"GCP_PROJECT_ID":GCP_PROJECT_ID, 
               "BIGQUERY_DATASET": BIGQUERY_DATASET, 
-              "EXECUTION_DATETIME_STR": EXECUTION_DATETIME_STR
+              "EXECUTION_DATETIME_STR": EXECUTION_DATETIME_STR,
+            "EXECUTION_MINUTE": EXECUTION_MINUTE,
+            "EXECUTION_FIVE_MINUTE_INTERVAL": EXECUTION_FIVE_MINUTE_INTERVAL
               }
 
 MACRO_VARS.update(TABLE_MAP)
@@ -64,7 +81,8 @@ with DAG(
         staging_table_name = event
         insert_query = f"{{% include 'sql/{event}.sql' %}}" #extra {} for f-strings escape
         external_table_name = f'{staging_table_name}_{EXECUTION_DATETIME_STR}'
-        events_data_path = f'{staging_table_name}/month={EXECUTION_MONTH}/day={EXECUTION_DAY}/hour={EXECUTION_HOUR}'
+        events_data_path = f'{staging_table_name}/month={EXECUTION_MONTH}/day={EXECUTION_DAY}/hour={EXECUTION_HOUR}'\
+                            f'/five_minute_interval={EXECUTION_FIVE_MINUTE_INTERVAL}'
         events_schema = schema[event]
 
         create_external_table_task = create_external_table(event,

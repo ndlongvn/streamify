@@ -1,5 +1,5 @@
 from pyspark.sql import SparkSession
-from pyspark.sql.functions import from_json, col, month, hour, dayofmonth, expr, year, udf, minute, sec
+from pyspark.sql.functions import from_json, col, month, hour, dayofmonth, expr, year, udf, minute, second
 import os
 
 
@@ -183,7 +183,7 @@ def create_kafka_read_stream(spark, groupid, kafka_address, kafka_port, topic, s
 
 #     return write_stream
 
-def process_stream(stream, stream_schema):
+def process_stream(stream, stream_schema, topic):
     """
     Process stream to fetch value from the kafka message, convert ts to timestamp format
     and produce year, month, day, hour, and five-minute interval columns.
@@ -210,12 +210,18 @@ def process_stream(stream, stream_schema):
               .withColumn("month", month("ts"))
               .withColumn("day", dayofmonth("ts"))
               .withColumn("hour", hour("ts"))
-              .withColumn("minute", minute("ts"))
-              .withColumn("second", second("ts"))
+            #   .withColumn("minute", minute("ts"))
+            #   .withColumn("second", second("ts"))
               # Create a column for 5-minute time intervals
               .withColumn("five_minute_interval",
-                          expr("concat(date_format(ts, 'yyyy-MM-dd HH:'), lpad(floor(minute(ts) / 5) * 5, 2, '0'))"))
+                          expr("concat(date_format(ts, 'yyyy-MM-dd HH-'), lpad(floor(minute(ts) / 5) * 5, 2, '0'))"))
               )
+        # rectify string encoding
+    if topic in ["listen_events", "page_view_events"]:
+        stream = (stream
+                .withColumn("song", string_decode("song"))
+                .withColumn("artist", string_decode("artist")) 
+                )
 
     return stream
 
