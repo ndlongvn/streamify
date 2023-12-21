@@ -1,5 +1,5 @@
 from pyspark.sql import SparkSession
-from pyspark.sql.functions import from_json, col, month, hour, dayofmonth, col, year, udf
+from pyspark.sql.functions import from_json, col, month, hour, dayofmonth, expr, year, udf, minute, sec
 import os
 
 
@@ -125,6 +125,8 @@ def process_stream(stream, stream_schema, topic):
               .withColumn("month", month(col("ts")))
               .withColumn("hour", hour(col("ts")))
               .withColumn("day", dayofmonth(col("ts")))
+              .withColumn("minute", minute(col("ts")))
+                .withColumn("sec", sec(col("ts")))
               )
 
     # rectify string encoding
@@ -157,10 +159,23 @@ def create_file_write_stream(stream, storage_path, checkpoint_path, trigger="120
             append, complete, update
     """
     "add options: 1 second"
+    # write_stream = (stream
+    #                 .writeStream
+    #                 .format(file_format)
+    #                 .partitionBy("month", "day", "hour")
+    #                 .option("path", storage_path)
+    #                 .option("checkpointLocation", checkpoint_path)
+    #                 .trigger(processingTime=trigger)
+    #                 .outputMode(output_mode))
+    stream = stream.withColumn(
+            "five_minute_interval",
+            expr("concat(date_format(timestamp, 'yyyy-MM-dd HH:'), floor(minute(timestamp) / 5) * 5)"))
+
     write_stream = (stream
                     .writeStream
                     .format(file_format)
-                    .partitionBy("month", "day", "hour")
+                    # Partition by the new 5-minute interval column along with month, day, hour if needed
+                    .partitionBy("month", "day", "hour", "five_minute_interval")
                     .option("path", storage_path)
                     .option("checkpointLocation", checkpoint_path)
                     .trigger(processingTime=trigger)
