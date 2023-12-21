@@ -10,16 +10,6 @@ from task_templates import (create_external_table,
                             insert_job, 
                             delete_external_table)
 
-def create_five_minute_interval(logical_date):
-    # Round down the minutes to the nearest 5-minute mark
-    minute = (logical_date.minute // 5) * 5
-    # Create a new datetime with the rounded minute
-    five_minute_interval_date = logical_date.replace(minute=minute, second=0, microsecond=0)
-    # Format the datetime into the desired string format
-    five_minute_interval_str = five_minute_interval_date.strftime('%Y-%m-%d %H-') + '{:02}'.format(minute)
-    # Use five_minute_interval_str as needed
-    print(five_minute_interval_str)
-
 EVENTS = ['listen_events', 'page_view_events', 'auth_events'] # we have data coming in from three events
 
 
@@ -31,12 +21,13 @@ EXECUTION_MONTH = '{{ logical_date.strftime("%-m") }}'
 EXECUTION_DAY = '{{ logical_date.strftime("%-d") }}'
 EXECUTION_HOUR = '{{ logical_date.strftime("%-H") }}'
 EXECUTION_DATETIME_STR = '{{ logical_date.strftime("%m%d%H") }}'
-# EXECUTION_MINUTE = '{{ (((logical_date.strftime("%-H")//5)*5)) }}'
-# EXECUTION_FIVE_MINUTE_INTERVAL = '{{ (logical_date.strftime("%Y-%m-%d %H")) }}-{{ execution_minute }}'
+# EXECUTION_MINUTE = '{{ (((logical_date.minute//5)*5)) }}'
+EXECUTION_MINUTE = '{{ "{:02d}".format(((logical_date.minute // 5) * 5) % 60) }}'
+EXECUTION_FIVE_MINUTE_INTERVAL = '{{ (logical_date.strftime("%Y-%m-%d %H")) }}-{{ execution_minute }}'
 # print(EXECUTION_FIVE_MINUTE_INTERVAL)
 
-EXECUTION_MINUTE = '{{ ((logical_date - timedelta(minutes=(logical_date.minute % 5))).strftime("%M")) }}'
-EXECUTION_FIVE_MINUTE_INTERVAL = '{{ ((logical_date - timedelta(minutes=(logical_date.minute % 5))).strftime("%Y%-m-%d %H")) }}-{{ execution_minute }}'
+# EXECUTION_MINUTE = '{{ ((logical_date - timedelta(minutes=(logical_date.minute % 5))).strftime("%M")) }}'
+# EXECUTION_FIVE_MINUTE_INTERVAL = '{{ ((logical_date - timedelta(minutes=(logical_date.minute % 5))).strftime("%Y%-m-%d %H")) }}-{{ execution_minute }}'
 
 TABLE_MAP = { f"{event.upper()}_TABLE" : event for event in EVENTS}
 
