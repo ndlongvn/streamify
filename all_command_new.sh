@@ -39,7 +39,7 @@ cd streamify/spark_streaming
 export KAFKA_ADDRESS=IP.ADD.RE.SS
 export GCP_GCS_BUCKET=bigdata-project-it4931
 
-nano ~/streamify/google_credentials.json # and paster the content of the file in the nano editor
+# nano ~/streamify/google_credentials.json # and paster the content of the file in the nano editor
 
 spark-submit \
 --packages org.apache.spark:spark-sql-kafka-0-10_2.12:3.1.2 \
