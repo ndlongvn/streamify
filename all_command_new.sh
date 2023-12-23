@@ -41,11 +41,11 @@ export GCP_GCS_BUCKET=bigdata-project-it4931
 
 # nano ~/streamify/google_credentials.json # and paster the content of the file in the nano editor
 
-spark-submit \
---packages org.apache.spark:spark-sql-kafka-0-10_2.12:3.1.2 \
-stream_all_events.py
+nohup spark-submit --packages org.apache.spark:spark-sql-kafka-0-10_2.12:3.1.2 stream_all_events.py > spark_log.log &
 
-spark-submit --packages org.apache.spark:spark-sql-kafka-0-10_2.12:3.1.2 --jars=gs://spark-lib/bigquery/spark-bigquery-latest_2.12.jar stream_to_gcs.py
+tail -f spark_log.log
+
+# spark-submit --packages org.apache.spark:spark-sql-kafka-0-10_2.12:3.1.2 --jars=gs://spark-lib/bigquery/spark-bigquery-latest_2.12.jar stream_to_gcs.py
 # go to port 8088 or 9870 or 18080
 
 # set airflow

@@ -225,7 +225,7 @@ def process_stream(stream, stream_schema, topic):
 
     return stream
 
-def create_file_write_stream(stream, storage_path, checkpoint_path, trigger="120 seconds", output_mode="append", file_format="parquet"):
+def create_file_write_stream(stream, storage_path, checkpoint_path, trigger="60 seconds", output_mode="append", file_format="parquet"):
     """
     Write the stream back to a file store
 
