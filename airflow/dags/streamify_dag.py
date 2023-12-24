@@ -19,12 +19,12 @@ BIGQUERY_DATASET = os.environ.get('BIGQUERY_DATASET', 'streamify_stg')
 
 
 if "{{ '{:02d}'.format(((logical_date.minute // 5) * 5 - 5) % 60) }}" == '55':
-    EXECUTION_YEAR = '{{ logical_date.subtract(hours=1)).strftime("%Y") }}'
-    EXECUTION_MONTH = '{{ logical_date.subtract(hours=1)).strftime("%-m") }}'
-    EXECUTION_DAY = '{{ logical_date.subtract(hours=1)).strftime("%-d") }}'
-    EXECUTION_HOUR = '{{ logical_date.subtract(hours=1)).strftime("%-H") }}'
-    EXECUTION_DATETIME_STR = '{{ logical_date.subtract(hours=1)).strftime("%m%d%H") }}'
-    EXECUTION_FIVE_MINUTE_INTERVAL = "{{ (logical_date.subtract(hours=1)).strftime('%Y-%m-%d %H') }}-55"
+    EXECUTION_YEAR = '{{ logical_date.subtract(hours=1).strftime("%Y") }}'
+    EXECUTION_MONTH = '{{ logical_date.subtract(hours=1).strftime("%-m") }}'
+    EXECUTION_DAY = '{{ logical_date.subtract(hours=1).strftime("%-d") }}'
+    EXECUTION_HOUR = '{{ logical_date.subtract(hours=1).strftime("%-H") }}'
+    EXECUTION_DATETIME_STR = '{{ logical_date.subtract(hours=1).strftime("%m%d%H") }}'
+    EXECUTION_FIVE_MINUTE_INTERVAL = "{{ (logical_date.subtract(hours=1).strftime('%Y-%m-%d %H') }}-55"
 # if '{{ "{:02d}".format(((logical_date.minute // 5) * 5 - 5) % 60) }}' == '55':
 
 else:
