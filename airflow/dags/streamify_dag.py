@@ -18,11 +18,23 @@ GCP_GCS_BUCKET = os.environ.get('GCP_GCS_BUCKET')
 BIGQUERY_DATASET = os.environ.get('BIGQUERY_DATASET', 'streamify_stg')
 
 
-EXECUTION_YEAR = '{{ logical_date.strftime("%Y") }}'
-EXECUTION_MONTH = '{{ logical_date.strftime("%-m") }}'
-EXECUTION_DAY = '{{ logical_date.strftime("%-d") }}'
-EXECUTION_HOUR = '{{ logical_date.strftime("%-H") }}'
-EXECUTION_DATETIME_STR = '{{ logical_date.strftime("%m%d%H") }}'
+if "{{ '{:02d}'.format(((logical_date.minute // 5) * 5 - 5) % 60) }}" == '55':
+    EXECUTION_YEAR = '{{ logical_date.subtract(hours=1)).strftime("%Y") }}'
+    EXECUTION_MONTH = '{{ logical_date.subtract(hours=1)).strftime("%-m") }}'
+    EXECUTION_DAY = '{{ logical_date.subtract(hours=1)).strftime("%-d") }}'
+    EXECUTION_HOUR = '{{ logical_date.subtract(hours=1)).strftime("%-H") }}'
+    EXECUTION_DATETIME_STR = '{{ logical_date.subtract(hours=1)).strftime("%m%d%H") }}'
+    EXECUTION_FIVE_MINUTE_INTERVAL = "{{ (logical_date.subtract(hours=1)).strftime('%Y-%m-%d %H') }}-55"
+# if '{{ "{:02d}".format(((logical_date.minute // 5) * 5 - 5) % 60) }}' == '55':
+
+else:
+
+    EXECUTION_YEAR = '{{ logical_date.strftime("%Y") }}'
+    EXECUTION_MONTH = '{{ logical_date.strftime("%-m") }}'
+    EXECUTION_DAY = '{{ logical_date.strftime("%-d") }}'
+    EXECUTION_HOUR = '{{ logical_date.strftime("%-H") }}'
+    EXECUTION_DATETIME_STR = '{{ logical_date.strftime("%m%d%H") }}'
+    EXECUTION_FIVE_MINUTE_INTERVAL = "{{ logical_date.strftime('%Y-%m-%d %H') }}-{{ '{:02d}'.format(((logical_date.minute // 5) * 5 - 5) % 60) }}"
 # if '{{ "{:02d}".format(((logical_date.minute // 5) * 5 - 5) % 60) }}' == '55':
 #     EXECUTION_FIVE_MINUTE_INTERVAL = '{{ (logical_date.strftime("%Y-%m-%d")) }} {{ "{:02d}".format(logical_date.hour-1)}}-{{ "55" }}'
 # else:
@@ -30,18 +42,16 @@ EXECUTION_DATETIME_STR = '{{ logical_date.strftime("%m%d%H") }}'
 #     EXECUTION_FIVE_MINUTE_INTERVAL = '{{ (logical_date.strftime("%Y-%m-%d %H")) }}-{{ "{:02d}".format(((logical_date.minute // 5) * 5 - 5) % 60) }}'
 # print(EXECUTION_FIVE_MINUTE_INTERVAL)
 
-from datetime import timedelta
-
 # Check if the calculated minute is '55'.
 # If it is '55', subtract one hour from the current logical date
 # and set the minutes to '55'.
 # Otherwise, subtract 5 minutes from the current logical date to get the interval.
-EXECUTION_FIVE_MINUTE_INTERVAL = (
-    "{{ (logical_date.subtract(hours=1)).strftime('%Y-%m-%d %H') }}-55"
-    if 1 #"{{ '{:02d}'.format(((logical_date.minute // 5) * 5 - 5) % 60) }}" == '55'
-    else
-    "{{ logical_date.strftime('%Y-%m-%d %H') }}-{{ '{:02d}'.format(((logical_date.minute // 5) * 5 - 5) % 60) }}"
-)
+# EXECUTION_FIVE_MINUTE_INTERVAL = (
+#     "{{ (logical_date.subtract(hours=1)).strftime('%Y-%m-%d %H') }}-55"
+#     if  "{{ '{:02d}'.format(((logical_date.minute // 5) * 5 - 5) % 60) }}" == '55'
+#     else
+#     "{{ logical_date.strftime('%Y-%m-%d %H') }}-{{ '{:02d}'.format(((logical_date.minute // 5) * 5 - 5) % 60) }}"
+# )
 
 # Note: The logical_date object should be the Airflow context date object.
 # The timedelta function is used to subtract time from the logical_date.
