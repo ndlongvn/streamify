@@ -38,7 +38,7 @@ from datetime import timedelta
 # Otherwise, subtract 5 minutes from the current logical date to get the interval.
 EXECUTION_FIVE_MINUTE_INTERVAL = (
     "{{ (logical_date - timedelta(hours=1)).strftime('%Y-%m-%d %H') }}-55"
-    if "{{ '{:02d}'.format(((logical_date.minute // 5) * 5 - 5) % 60) }}" == '55'
+    if 1 #"{{ '{:02d}'.format(((logical_date.minute // 5) * 5 - 5) % 60) }}" == '55'
     else
     "{{ logical_date.strftime('%Y-%m-%d %H') }}-{{ '{:02d}'.format(((logical_date.minute // 5) * 5 - 5) % 60) }}"
 )
