@@ -29,13 +29,13 @@ Eventsim uses song data from [Million Songs Dataset](http://millionsongdataset.c
 - ML UI Web-based Demos - [**Gradio**](https://gradio.app)
 - Language - [**Python**](https://www.python.org)
 
-### Architecture
+<!-- ### Architecture
 
 ![streamify-architecture](images/Streamify.png)
 
 ### Final Result
 
-![dashboard](images/Dashboard.png)
+![dashboard](images/Dashboard.png) -->
 ## Setup
 
 **WARNING: You will be charged for all the infra setup. You can avail 300$ in credit by creating a new account on GCP.**
