@@ -31,7 +31,7 @@ Eventsim uses song data from [Million Songs Dataset](http://millionsongdataset.c
 
 ### Architecture
 
-![streamify-architecture](images/streamify.png)
+![streamify-architecture](images/Streamify.png)
 
 ### Final Result
 
