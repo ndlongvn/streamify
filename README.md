@@ -29,13 +29,13 @@ Eventsim uses song data from [Million Songs Dataset](http://millionsongdataset.c
 - ML UI Web-based Demos - [**Gradio**](https://gradio.app)
 - Language - [**Python**](https://www.python.org)
 
-<!-- ### Architecture
+### Architecture
 
 ![streamify-architecture](images/streamify.png)
 
 ### Final Result
 
-![dashboard](images/dashboard.png) -->
+![dashboard](images/dashboard.png)
 ## Setup
 
 **WARNING: You will be charged for all the infra setup. You can avail 300$ in credit by creating a new account on GCP.**
@@ -178,6 +178,10 @@ Run the following dags in order:
 #### Set RecSys
 
 Open Recommendation System.ipynb in [google colab folder](https://github.com/ndlongvn/streamify/tree/main/google_colab) and run all cells.
+
+#### Set Data Studio
+
+Open [Data Studio](https://datastudio.google.com/s/ixZ3Z3Z3Z3E) and create a new report using the data from BigQuery.
 
 
 #### Finish
